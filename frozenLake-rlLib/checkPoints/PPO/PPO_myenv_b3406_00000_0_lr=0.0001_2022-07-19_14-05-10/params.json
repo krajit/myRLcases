@@ -1,0 +1,16 @@
+{
+  "create_env_on_driver": true,
+  "env": "myenv",
+  "env_config": {
+    "numHoles": 10,
+    "size": 6
+  },
+  "framework": "torch",
+  "lr": 0.0001,
+  "model": {
+    "custom_model": "<class '__main__.MyTorchModel'>",
+    "custom_model_config": {}
+  },
+  "num_envs_per_worker": 200,
+  "num_workers": 10
+}
