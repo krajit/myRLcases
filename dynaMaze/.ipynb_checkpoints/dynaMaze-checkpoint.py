@@ -7,10 +7,10 @@ from IPython import display
 
 ROWS = 6
 COLS = 9
-S = (0,0)
+S = (2,0)
 G = (0,8)
 
-BLOCKS = [(1, 2), (2, 2), (3, 2), (0, 7), (2, 7), (4, 5)]
+BLOCKS = [(1, 2), (2, 2), (3, 2), (0, 7), (1, 7), (2, 7), (4, 5)]
 ACTIONS = ["left", "up", "right", "down"]
 
 class Maze:
@@ -45,18 +45,12 @@ class Maze:
                 self.state = (r,c)
         return self.state
 
-    def reset(self):
-        self.state = S
-        self.end = False
-
-
     def giveReward(self):
         if self.state == self.goal:
-            print("goal reached")
             self.end = True
             return 1
         else:
-            return 0
+            return -0.1
 
     def showMaze(self):
         sqSize = 20
@@ -81,6 +75,9 @@ class Maze:
         for (r,c) in self.blocks:
             pygame.draw.rect(canvas, blackColor, pygame.Rect(sqSize*r+1, sqSize*c+1, sqSize-1, sqSize-1))
 
+              
+        
+
         plArray = np.array(pygame.surfarray.pixels3d(canvas))
         return plArray
         # plt.imshow(plArray)
@@ -88,11 +85,13 @@ class Maze:
         # plt.show()
         
 
+
+
 class DynaAgent:
     
     def __init__(self, exp_rate=0.3, lr=0.1, n_steps=5, episodes=1):
         self.maze = Maze()
-        self.state = self.maze.state
+        self.state = S
         self.actions = ACTIONS
         self.state_actions = []  # state & action track
         self.exp_rate = exp_rate
@@ -111,16 +110,16 @@ class DynaAgent:
                 for a in self.actions:
                     self.Q_values[(row, col)][a] = 0
         
-    def chooseAction(self, eps = 0.3):
+    def chooseAction(self):
         # epsilon-greedy
         mx_nxt_reward = -999
         action = ""
         
-        if np.random.uniform(0, 1) <= eps:
+        if np.random.uniform(0, 1) <= self.exp_rate:
             action = np.random.choice(self.actions)
         else:
             # greedy action
-            current_position = self.maze.state
+            current_position = self.state
             # if all actions have same value, then select randomly
             if len(set(self.Q_values[current_position].values())) == 1:
                 action = np.random.choice(self.actions)
@@ -131,6 +130,24 @@ class DynaAgent:
                         action = a
                         mx_nxt_reward = nxt_reward
         return action
+
+    def chooseActionNoExplorotion(self):
+        # epsilon-greedy
+        mx_nxt_reward = -999
+        action = ""
+        # greedy action
+        current_position = self.state
+        # if all actions have same value, then select randomly
+        if len(set(self.Q_values[current_position].values())) == 1:
+            action = np.random.choice(self.actions)
+        else:
+            for a in self.actions:
+                nxt_reward = self.Q_values[current_position][a]
+                if nxt_reward >= mx_nxt_reward:
+                    action = a
+                    mx_nxt_reward = nxt_reward
+        return action
+
 
 
     def reset(self):
@@ -178,9 +195,9 @@ class DynaAgent:
 
 
 if __name__ == "__main__":
-    N_EPISODES = 50
+    N_EPISODES = 500
     # comparison
-    agent = DynaAgent(n_steps=5, episodes=N_EPISODES)
+    agent = DynaAgent(n_steps=50, episodes=N_EPISODES)
     agent.play()
 
     # steps_episode = agent.steps_per_episode
@@ -193,22 +210,24 @@ if __name__ == "__main__":
     # plt.legend()
 
     
-    agent.maze.reset()
+    agent.reset()
     img = plt.imshow(agent.maze.showMaze()) 
     plt.pause(1)
     display.display(plt.gcf())
     display.clear_output(wait=True)
 
     while not agent.maze.end:
-        # img = plt.imshow(agent.maze.showMaze()) 
-        action = agent.chooseAction(eps = 0.0)
+        img = plt.imshow(agent.maze.showMaze()) 
+        action = agent.chooseAction()
 
         nxtState = agent.maze.nxtPosition(action)
-        
         img.set_data(agent.maze.showMaze())
         display.display(plt.gcf())
         display.clear_output(wait=True)
-        plt.pause(0.1)
-        print(action, nxtState, agent.maze.state)
-        if nxtState == agent.maze.goal:
-            break
+        plt.pause(1)
+
+
+
+
+
+
