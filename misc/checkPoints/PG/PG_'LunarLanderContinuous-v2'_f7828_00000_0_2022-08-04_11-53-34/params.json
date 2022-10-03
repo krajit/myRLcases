@@ -1,0 +1,6 @@
+{
+  "create_env_on_driver": true,
+  "env": "'LunarLanderContinuous-v2'",
+  "n_step": 2,
+  "num_workers": 10
+}
